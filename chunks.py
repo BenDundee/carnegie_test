@@ -7,7 +7,7 @@ import threading as th
 class ChunkHandler(object):
 
     def __init__(self, url, file, size, chunk_spec, threads):
-        """
+        """ A class to handle all the chunks
 
         :param url: URL to download from
         :type url: str
@@ -17,7 +17,8 @@ class ChunkHandler(object):
         :type size: float
         :param chunk_spec: Specification for chunking -- has either total chunks or chunk size specified
         :type chunk_spec: dict
-        :param threads:
+        :param threads: Total number of threads to use in download
+        :type threads: int
         """
         self.logger = lg.getLogger(__name__)
         self.logger.info("Initializing chunk handler")
@@ -38,7 +39,7 @@ class ChunkHandler(object):
         self.chunks = []
         self.__build_chunks()
 
-        self.logger.debug("Handler initialized, details to follow...")
+        self.logger.info("Handler initialized...")
         self.logger.debug("\t* Downloading from: {0}".format(self.url))
         self.logger.debug("\t* Downloading to: {0}".format(self.file))
         self.logger.debug("\t* Total size of download: {0} bytes".format(self.size))
@@ -62,10 +63,9 @@ class ChunkHandler(object):
             if end_byte > self.size:
                 end_byte = self.size
 
-    def __get_several_chunks(self, chunks):
-        pass
-
     def run(self):
+
+        self.logger.info("Downloading chunks...")
 
         # Chunks per thread
         cpt = self.number_of_chunks // self.threads
@@ -77,26 +77,30 @@ class ChunkHandler(object):
             t.start()
             t.join()
 
-    def write(self):
+        self.logger.info("All chunks successfully downloaded.")
 
+    def write(self):
+        self.logger.info("Writing chunks to file {0}".format(self.file))
         with open(self.file, "wb") as f:
             for c in self.chunks:
                 f.write(c.content)
+        self.logger.info("Chunks successfully written to file.")
 
 
 class Chunk(object):
-    """ Object that gets a chunk of a downloadable file
+    """ A chunk of a downloadable file
 
     """
 
     def __init__(self, url, start_byte, end_byte):
-        """
+        """ One chunk
 
         :param url: url to download
         :type url: str
-        :param get_header: HTTP header
-        :type get_header: dict
-        :rtype: Getter
+        :param start_byte: byte location to start from
+        :type start_byte: int
+        :param end_byte: byte location to end (inclusive)
+        :type end_byte: int
         """
         self.logger = lg.getLogger(__name__)
 
@@ -122,5 +126,5 @@ class Chunk(object):
         return self.end_byte - self.start_byte + 1
 
     def get(self):
-        self.logger.debug("Getting chunk, start byte = {0}, end byte = {1}".format(self.start_byte, self.end_byte))
+        self.logger.debug("Getting chunk with start byte = {0} and end byte = {1}".format(self.start_byte, self.end_byte))
         self.content = req.get(self.url, headers=self.header).content
