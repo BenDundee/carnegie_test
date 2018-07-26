@@ -1,4 +1,4 @@
-#!
+#!/usr/local/bin/python
 
 from argparse import ArgumentParser
 import logging as lg
@@ -34,7 +34,7 @@ def run(arguments):
         if arguments.chunk_size is not None:
             assert arguments.chunks is None
     except AssertionError:
-        raise AssertionError("Cannot specify both chunks and chunk-size")
+        raise Exception("Cannot specify both chunks and chunk-size")
 
     chunk_spec = {
         "chunk_size": arguments.chunk_size
