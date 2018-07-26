@@ -42,7 +42,7 @@ def run(arguments):
     }
 
     handler = ChunkHandler(
-        url=args.url
+        url=arguments.url
         , file=file_location
         , size=arguments.size_limit
         , chunk_spec=chunk_spec
