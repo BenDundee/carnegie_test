@@ -14,7 +14,7 @@ verbosity = {
 
 
 def run(arguments):
-    """ Helper function that serves as the handler for Getter objects
+    """ Helper function
 
     :param arguments: object containing command line args
     :type arguments: ArgumentParser
