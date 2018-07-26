@@ -3,9 +3,8 @@
 from argparse import ArgumentParser
 import logging as lg
 import os
-import threading as th
 
-from getter import Getter
+from chunks import ChunkHandler
 
 
 verbosity = {
@@ -22,15 +21,37 @@ def run(arguments):
     """
     _logger = lg.getLogger(__name__)
 
-    # File location
+    # File location -- try to make it work for mac and windows
     loc = os.path.dirname(os.path.realpath(__file__))
     path = arguments.path if arguments.path is not None else loc
-    _logger.debug("File will be downloaded to {0}".format(path))
+    fn = arguments.out
+    file_location = os.path.join(path, fn)
+    _logger.debug("File will be downloaded to {0}".format(file_location))
 
+    # Check: Cannot specify both chunk and chunk size.
+    # Only need to check this case, ArgumentParser ensures at least one is present
+    try:
+        if arguments.chunk_size is not None:
+            assert arguments.chunks is None
+    except AssertionError:
+        raise AssertionError("Cannot specify both chunks and chunk-size")
 
+    chunk_spec = {
+        "chunk_size": arguments.chunk_size
+        , "chunks": arguments.chunks
+    }
 
+    handler = ChunkHandler(
+        url=args.url
+        , file=file_location
+        , size=arguments.size_limit
+        , chunk_spec=chunk_spec
+        , threads=arguments.threads
+    )
 
-    pass
+    # Lights...camera...
+    handler.run()
+    handler.write()
 
 
 if __name__ == "__main__":
@@ -47,23 +68,13 @@ if __name__ == "__main__":
         "--url"
         , type=str
         , default="http://10b74590.bwtest-aws.pravala.com/384MB.jar"
-        , action="store"
         , required=True
         , help="Target file to download"
-    )
-    parser.add_argument(
-        "--threads"
-        , type=int
-        , default=1
-        , action="store"
-        , required=False
-        , help="Number of threads to download file across"
     )
     parser.add_argument(
         "--size-limit"
         , type=float
         , default=4.0
-        , action="store"
         , required=False
         , help="Limit on file download size (in MiB)"
     )
@@ -75,12 +86,25 @@ if __name__ == "__main__":
         , help="Because we log properly, not with print statements"
     )
     parser.add_argument(
+        "--out"
+        , type=str
+        , default="out.jar"
+        , required=False
+        , help="Name of downloaded file"
+    )
+    parser.add_argument(
         "--path"
         , type=str
         , default=None
-        , action="store"
         , required=False
-        , help="Path to store downloaded file, if unspecified stores in this directory"
+        , help="Path to store downloaded file, if unspecified stores file in this directory"
+    )
+    parser.add_argument(
+        "--threads"
+        , type=int
+        , default=1
+        , required=False
+        , help="Number of threads to download file across"
     )
 
     # Pick one...
@@ -88,13 +112,11 @@ if __name__ == "__main__":
     grp.add_argument(
         "--chunks"
         , type=int
-        , action="store"
         , help="Number of chunks to download. If specified, chunks are 1MiB in size"
     )
     grp.add_argument(
         "--chunk-size"
         , type=float
-        , action="store"
         , help="Size (in MiB) of each chunk"
     )
 
