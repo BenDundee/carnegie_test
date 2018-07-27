@@ -22,4 +22,5 @@ optional arguments:
   --chunks CHUNKS       Number of chunks to download. If specified, chunks are
                         1MiB in size
   --chunk-size CHUNK_SIZE
-                        Size (in MiB) of each chunk```
+                        Size (in MiB) of each chunk
+```
