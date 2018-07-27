@@ -1,5 +1,4 @@
 #!
-import filecmp as fc
 
 BYTE_LENGTH = 4000000
 
