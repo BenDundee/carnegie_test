@@ -36,6 +36,10 @@ def run(arguments):
     except AssertionError:
         raise Exception("Cannot specify both chunks and chunk-size")
 
+    # Check: Cannot specify more threads than chunks
+    if arguments.chunks is not None and arguments.chunks < arguments.threads:
+        raise Exception("Number of threads must be less than or equal to number of chunks")
+
     chunk_spec = {
         "chunk_size": arguments.chunk_size
         , "chunks": arguments.chunks
@@ -55,10 +59,6 @@ def run(arguments):
 
 
 if __name__ == "__main__":
-
-    lg.basicConfig()
-    logger = lg.getLogger()
-    fmt = lg.Formatter("%(asctime)s - %(name)s - %(lineno)d -  %(levelname)s - %(message)s")
 
     # Parse CL...
     parser = ArgumentParser(
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         , type=int
         , default=1
         , required=False
-        , help="Number of threads to download file across"
+        , help="Number of threads to download file across. Mult be <= to # of chunks"
     )
 
     # Pick one...
@@ -112,19 +112,28 @@ if __name__ == "__main__":
     grp.add_argument(
         "--chunks"
         , type=int
-        , help="Number of chunks to download. If specified, chunks are 1MiB in size"
+        , help="Number of chunks to break the file into. Not all chunks are guaranteed to be the same size"
     )
     grp.add_argument(
         "--chunk-size"
         , type=float
-        , help="Size (in MiB) of each chunk"
+        , help="Max size (in MiB) of each chunk, last chunk may be smaller"
     )
 
     # Parse!
     args = parser.parse_args()
 
-    # Set logging level
+    # Configure logging
+    lg.basicConfig()
+    logger = lg.getLogger()
     logger.setLevel(verbosity[args.verbosity])
+    logger.handlers = []
+    fmt = lg.Formatter("%(asctime)s - %(name)s - %(lineno)d -  %(levelname)s - %(message)s")
+
+    # Set logging level
+    strm_hndlr = lg.StreamHandler()
+    strm_hndlr.setFormatter(fmt)
+    logger.addHandler(strm_hndlr)
 
     # Run!
     run(args)

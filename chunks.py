@@ -1,4 +1,5 @@
 #!
+from decimal import Decimal
 import requests as req
 import logging as lg
 import threading as th
@@ -25,16 +26,21 @@ class ChunkHandler(object):
 
         self.url = url
         self.file = file
-        self.size = size * 1000000  # Convert to bytes
+        self.size = round(Decimal(size * 1000000))  # Convert to bytes...gotta love floating point arithmetic
         self.threads = threads
+
+        # For handling odd numbers
+        self.chunk_correction = None
 
         # Deconstruct chunk spec
         if chunk_spec["chunk_size"] is not None:
-            self.chunk_size = int(chunk_spec["chunk_size"] * 1000000)  # convert to bytes
-            self.number_of_chunks = int(self.size // self.chunk_size)
+            self.chunk_size = round(Decimal(chunk_spec["chunk_size"] * 1000000))  # convert to bytes
+            self.number_of_chunks = self.size // self.chunk_size
+            if self.size % self.chunk_size:
+                self.number_of_chunks += 1
         else:
             self.number_of_chunks = chunk_spec["chunks"]
-            self.chunk_size = int(self.size // self.number_of_chunks)
+            self.chunk_size = round(Decimal(self.size // self.number_of_chunks))
 
         self.chunks = []
         self.__build_chunks()
@@ -52,7 +58,7 @@ class ChunkHandler(object):
         # Get chunks needed
         start_byte = 0
         end_byte = self.chunk_size - 1
-        while end_byte < self.size:
+        for i in range(self.number_of_chunks):
 
             self.logger.debug("Adding chunk to download bytes {0} - {1}".format(start_byte, end_byte))
             self.chunks.append(Chunk(self.url, start_byte, end_byte))
@@ -60,8 +66,10 @@ class ChunkHandler(object):
             # Byte math...
             start_byte = end_byte + 1
             end_byte = end_byte + self.chunk_size
-            if end_byte > self.size:
-                end_byte = self.size
+
+            # last time through
+            if i == self.number_of_chunks - 2:
+                end_byte = self.size - 1
 
     def run(self):
 

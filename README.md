@@ -18,9 +18,11 @@ optional arguments:
   --out OUT             Name of downloaded file
   --path PATH           Path to store downloaded file, if unspecified stores
                         file in this directory
-  --threads THREADS     Number of threads to download file across
-  --chunks CHUNKS       Number of chunks to download. If specified, chunks are
-                        1MiB in size
+  --threads THREADS     Number of threads to download file across. Mult be <=
+                        to # of chunks
+  --chunks CHUNKS       Number of chunks to break the file into. Not all
+                        chunks are guaranteed to be the same size
   --chunk-size CHUNK_SIZE
-                        Size (in MiB) of each chunk
+                        Max size (in MiB) of each chunk, last chunk may be
+                        smaller
 ```
