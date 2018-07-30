@@ -109,11 +109,10 @@ class ChunkHandler(object):
         self.logger.info("All chunks successfully downloaded.")
 
     def get_several_chunks(self, chunks_to_get, thread_name):
-        """ Gets a chunk
+        """ Gets a few chunks
 
         :param chunks_to_get: list of chunks to retreive
         :param thread_name: name of thread
-        :return:
         """
         self.logger.info("Getting {0} chunks on thread {1}. Avg. chunk size = {2}".format(
             len(chunks_to_get)
@@ -140,9 +139,7 @@ class ChunkHandler(object):
 
 
 class Chunk(object):
-    """ A chunk of a downloadable file
-
-    """
+    """ A chunk of a downloadable file """
 
     def __init__(self, url, start_byte, end_byte):
         """ One chunk

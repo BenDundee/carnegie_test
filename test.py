@@ -15,16 +15,16 @@ class Tester(object):
 
     def __init__(self, test_name, out=OUT_FILE, chunk_size=1.0, chunks=None,
                  threads=1, url=URL, size_limit=4.0, path=LOCATION):
-        """ Class that provides CL arguments.
+        """ Mimics the ArgumentParser object that receives CL args
 
         :param test_name: Name of test
-        :param out:
-        :param chunk_size:
-        :param chunks:
-        :param threads:
-        :param url:
-        :param size_limit:
-        :param path:
+        :param out: name of output file
+        :param chunk_size: size of chunks
+        :param chunks: number of chunks
+        :param threads: number of threads to distribute downloads across
+        :param url: remote location of file
+        :param size_limit: total size of file to be downloaded
+        :param path: location in file system to store file
         """
         self.test_name = test_name
         self.out = out
