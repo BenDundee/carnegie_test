@@ -1,6 +1,7 @@
 This is, literally, a test.
 
-```bdundee-mac:carnegie_test bdundee$ python multi_get.py --help
+```
+bdundee-mac:carnegie_test bdundee$ python multi_get.py --help
 usage: multi_get.py [-h] --url URL [--size-limit SIZE_LIMIT]
                     [--verbosity {info,debug}] [--out OUT] [--path PATH]
                     [--threads THREADS]
@@ -18,11 +19,12 @@ optional arguments:
   --out OUT             Name of downloaded file
   --path PATH           Path to store downloaded file, if unspecified stores
                         file in this directory
-  --threads THREADS     Number of threads to download file across. Mult be <=
+  --threads THREADS     Number of threads to download file across. Must be <=
                         to # of chunks
   --chunks CHUNKS       Number of chunks to break the file into. Not all
-                        chunks are guaranteed to be the same size
+                        chunks are guaranteed to be the same size. If
+                        specified, it must be >= number of threads.
   --chunk-size CHUNK_SIZE
-                        Max size (in MiB) of each chunk, last chunk may be
+                        Max size (in MiB) of each chunk, some chunks may be
                         smaller
 ```
