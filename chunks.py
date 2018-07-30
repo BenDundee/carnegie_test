@@ -10,6 +10,16 @@ class ChunkHandler(object):
     def __init__(self, url, file, size, chunk_spec, threads):
         """ A class to handle all the chunks
 
+        Chunks are built under the following guidelines:
+            * If the number of chunks is specified, the file is split as evenly as possible across the chunks. If the
+                file size cannot be divided equally, one chunk may have a different size. For example, if the target
+                file size is 1,000,001 bytes, and 2 chunks are specified, the first chunk will be 500,000 bytes, and
+                the second chunk will be 500,001 bytes.
+            * If the chunk size is specified, the file is split into equally sized chunks. If the file cannot be split
+                equally across chunks, an additional chunk is added with the remainter. For example, if the target
+                file size is 1,000,001 bytes, and the chunk size is specified as 500,000 bytes, the file will be downloaded
+                in three chunks -- two will have size 500,000 bytes, and the third will have size 1 byte.
+
         :param url: URL to download from
         :type url: str
         :param file: location to store results
@@ -54,6 +64,7 @@ class ChunkHandler(object):
         self.logger.debug("\t* Last chunk size, in bytes: {0}".format(self.chunks[-1].size))
 
     def __build_chunks(self):
+        """ Initialize chunks. Should only be called in constructor. """
 
         # Get chunks needed
         start_byte = 0
@@ -67,11 +78,16 @@ class ChunkHandler(object):
             start_byte = end_byte + 1
             end_byte = end_byte + self.chunk_size
 
-            # last time through
+            # Before last time through
             if i == self.number_of_chunks - 2:
                 end_byte = self.size - 1
 
     def run(self):
+        """ Downloads chunks across specified number of threads.
+
+        This function builds a "chunk plan" -- it decides how to split up chunks across threads. Not all threads will
+        download the same number of chunks.
+        """
 
         self.logger.info("Downloading chunks...")
 
@@ -93,7 +109,7 @@ class ChunkHandler(object):
         self.logger.info("All chunks successfully downloaded.")
 
     def get_several_chunks(self, chunks_to_get, thread_name):
-        """ Gets a chunk. Factored out for better logging.
+        """ Gets a chunk
 
         :param chunks_to_get: list of chunks to retreive
         :param thread_name: name of thread
@@ -102,7 +118,7 @@ class ChunkHandler(object):
         self.logger.info("Getting {0} chunks on thread {1}. Avg. chunk size = {2}".format(
             len(chunks_to_get)
             , thread_name
-            , sum(c.size for c in chunks_to_get) / len(chunks_to_get)
+            , int(sum(c.size for c in chunks_to_get) / len(chunks_to_get))
         ))
         for chunk in chunks_to_get:
             self.logger.debug("Getting chunk of size {0} on thread {1}".format(chunk.size, thread_name))
@@ -110,6 +126,12 @@ class ChunkHandler(object):
             self.logger.debug("Chunk of size {0} retrieved on thread {1}".format(chunk.size, thread_name))
 
     def write(self):
+        """ Writes a chunk to file
+
+        TODO: Write chunks to their own file as they're downloaded. This would allow download to resume if it were
+        interrupted. Then we'd need a method like construct_final_download_from_parts. As it stands, user will have to
+        restart the download from scratch if they lose connectivity. Not an issue for small files.
+        """
         self.logger.info("Writing chunks to file {0}".format(self.file))
         with open(self.file, "wb") as f:
             for c in self.chunks:
@@ -153,8 +175,10 @@ class Chunk(object):
 
     @property
     def size(self):
+        """ The size of this chunk """
         return self.end_byte - self.start_byte + 1
 
     def get(self):
+        """ GET one chunk """
         self.logger.debug("Getting chunk with start byte = {0} and end byte = {1}".format(self.start_byte, self.end_byte))
         self.content = req.get(self.url, headers=self.header).content

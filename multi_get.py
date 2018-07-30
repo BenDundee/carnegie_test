@@ -14,7 +14,7 @@ verbosity = {
 
 
 def run(arguments):
-    """ Helper function
+    """ Validates input and downloads the requested file. If input is invalid, exceptions are raised.
 
     :param arguments: object containing command line args
     :type arguments: ArgumentParser
@@ -24,17 +24,12 @@ def run(arguments):
     # File location -- try to make it work for mac and windows
     loc = os.path.dirname(os.path.realpath(__file__))
     path = arguments.path if arguments.path is not None else loc
+    if not os.path.isdir(path):
+        raise Exception("{0} does not exist, please specify a location that exists".format(path))
+
     fn = arguments.out
     file_location = os.path.join(path, fn)
     _logger.debug("File will be downloaded to {0}".format(file_location))
-
-    # Check: Cannot specify both chunk and chunk size.
-    # Only need to check this case, ArgumentParser ensures at least one is present
-    try:
-        if arguments.chunk_size is not None:
-            assert arguments.chunks is None
-    except AssertionError:
-        raise Exception("Cannot specify both chunks and chunk-size")
 
     # Check: Cannot specify more threads than chunks
     if arguments.chunks is not None and arguments.chunks < arguments.threads:
@@ -104,20 +99,24 @@ if __name__ == "__main__":
         , type=int
         , default=1
         , required=False
-        , help="Number of threads to download file across. Mult be <= to # of chunks"
+        , help="Number of threads to download file across. Must be <= to # of chunks"
     )
 
-    # Pick one...
+    # Pick one, but ONLY one: https://docs.python.org/3/library/argparse.html#mutual-exclusion
+    # Didn't know about this before, but pretty useful. Removes need for input validation.
     grp = parser.add_mutually_exclusive_group(required=True)
     grp.add_argument(
         "--chunks"
         , type=int
-        , help="Number of chunks to break the file into. Not all chunks are guaranteed to be the same size"
+        , help="""
+        Number of chunks to break the file into. Not all chunks are guaranteed to be the same size. If specified, it 
+        must be >= number of threads.
+        """
     )
     grp.add_argument(
         "--chunk-size"
         , type=float
-        , help="Max size (in MiB) of each chunk, last chunk may be smaller"
+        , help="Max size (in MiB) of each chunk, some chunks may be smaller"
     )
 
     # Parse!

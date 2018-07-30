@@ -6,8 +6,8 @@ import os
 from multi_get import run
 
 
-URL ="http://10b74590.bwtest-aws.pravala.com/384MB.jar"
-OUT_FILE="out.jar"
+URL = "http://10b74590.bwtest-aws.pravala.com/384MB.jar"
+OUT_FILE = "out.jar"
 LOCATION = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -39,6 +39,7 @@ class Tester(object):
         self.log_test()
 
     def log_test(self):
+        """ Breaks up test log messages """
 
         ln = "=" * 80
         pretty_log = [
@@ -64,9 +65,7 @@ class Tester(object):
         self.logger.info('\n'.join(pretty_log))
 
     def validate_download(self):
-        """ Verifies that the downloaded file is the correct size, and matches correcct file byte for byte
-
-        """
+        """ Verifies that the downloaded file is the correct size, and matches correcct file byte for byte """
         out = os.path.join(self.path, self.out)
         correct = os.path.join(self.path, "test.jar")
 
@@ -88,7 +87,7 @@ class Tester(object):
 
 def run_tests():
 
-    _logger = lg.getLogger(__name__)
+    #_logger = lg.getLogger(__name__)
 
     if True:
         test_1 = Tester("Test 1: Basic requirements")
