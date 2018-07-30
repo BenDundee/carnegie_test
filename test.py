@@ -90,22 +90,22 @@ def run_tests():
 
     _logger = lg.getLogger(__name__)
 
-    if False:
+    if True:
         test_1 = Tester("Test 1: Basic requirements")
         run(test_1)
         test_1.validate_download()
 
-    if False:
+    if True:
         test_2 = Tester("Test 2: Multiple threads", threads=3)
         run(test_2)
         test_2.validate_download()
 
-    if False:
+    if True:
         test_3 = Tester("Test 3: Odd file size", size_limit=4.1, threads=3)
         run(test_3)
         test_3.validate_download()
 
-    if False:
+    if True:
         test_4 = Tester("Test 4: Odd file size, w/ chunks", size_limit=4.1, chunks=7, chunk_size=None, threads=5)
         run(test_4)
         test_4.validate_download()

@@ -77,15 +77,37 @@ class ChunkHandler(object):
 
         # Chunks per thread
         cpt = self.number_of_chunks // self.threads
-        chunk_plan = [self.chunks[i:i + cpt] for i in range(0, self.number_of_chunks, cpt)]
-        get_several_chunks = lambda ch: [c.get() for c in ch]
+        chunk_plan = [self.chunks[i:i + cpt] for i in range(0, self.threads, cpt)]
 
-        for cp in chunk_plan:
-            t = th.Thread(target=get_several_chunks, args=(cp,))
+        # Some chunks are left over -- distribute these across first few threads
+        if self.number_of_chunks % self.threads:
+            chunks_already_planned = cpt * self.threads
+            for (i, c) in enumerate(range(chunks_already_planned, self.number_of_chunks, 1)):
+                chunk_plan[i].append(self.chunks[c])
+
+        for (i, cp) in enumerate(chunk_plan):
+            t = th.Thread(target=self.get_several_chunks, args=(cp, i))
             t.start()
             t.join()
 
         self.logger.info("All chunks successfully downloaded.")
+
+    def get_several_chunks(self, chunks_to_get, thread_name):
+        """ Gets a chunk. Factored out for better logging.
+
+        :param chunks_to_get: list of chunks to retreive
+        :param thread_name: name of thread
+        :return:
+        """
+        self.logger.info("Getting {0} chunks on thread {1}. Avg. chunk size = {2}".format(
+            len(chunks_to_get)
+            , thread_name
+            , sum(c.size for c in chunks_to_get) / len(chunks_to_get)
+        ))
+        for chunk in chunks_to_get:
+            self.logger.debug("Getting chunk of size {0} on thread {1}".format(chunk.size, thread_name))
+            chunk.get()
+            self.logger.debug("Chunk of size {0} retrieved on thread {1}".format(chunk.size, thread_name))
 
     def write(self):
         self.logger.info("Writing chunks to file {0}".format(self.file))
